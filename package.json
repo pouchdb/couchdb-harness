@@ -9,12 +9,18 @@
   "scripts": {
     "start": "./bin/couchdb-harness"
   },
+  "engines": {
+    "node": ">= 0.6.0"
+  },
   "keywords": [
     "couchdb",
     "test",
     "javascript"
   ],
-  "author": "Nick Thompson",
+  "author": {
+    "name": "Nick Thompson",
+    "email": "ncthom91@gmail.com"
+  },
   "license": "Apache License",
   "dependencies": {
     "optimist": "~0.3.5",
