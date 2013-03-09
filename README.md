@@ -1,4 +1,6 @@
-# CouchDB JavaScript Test Harness
+# CouchDB Harness
+
+>A generalized port of the CouchDB JavaScript test harness.
 
 ## License
 

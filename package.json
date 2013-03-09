@@ -1,10 +1,10 @@
 {
-  "name": "couchdb-js-tests",
-  "version": "0.0.0",
+  "name": "couchdb-harness",
+  "version": "0.0.1",
   "description": "A generalized port of the CouchDB JavaScript test harness.",
   "repository": {
     "type": "git",
-    "url": "git://github.com/nick-thompson/couchdb-js-tests.git"
+    "url": "git://github.com/nick-thompson/couchdb-harness.git"
   },
   "scripts": {
     "start": "./bin/couchdb-harness"
