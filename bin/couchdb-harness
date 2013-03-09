@@ -5,10 +5,10 @@ var args    = require('optimist').argv._
   , fs      = require('fs')
   , path    = require('path')
   , glob    = require('glob')
-  , cwd     = process.cwd()
+  , cwd     = path.resolve(__dirname, '..')
   , uri     = path.resolve(cwd, 'server.uri')
   , couchjs = path.resolve(cwd, 'bin/couchjs')
-  , tests   = args.length ? args : glob.sync('script/test/*.js')
+  , tests   = args.length ? args : glob.sync('script/test/*.js', { cwd: cwd })
   , files = [
       'script/json2.js',
       'script/sha1.js',
@@ -19,7 +19,9 @@ var args    = require('optimist').argv._
     ].concat(tests, [
       'util/couch_http.js',
       'util/cli_runner.js'
-    ])
+    ]).map(function (fp) {
+      return path.resolve(cwd, fp);
+    })
   , tests = spawn(couchjs, ['-H', '-u', uri].concat(files));
 
 tests.stdout.on('data', function (data) {
