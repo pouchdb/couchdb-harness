@@ -1,0 +1,35 @@
+#!/usr/bin/env node
+
+var args    = require('optimist').argv._
+  , spawn   = require('child_process').spawn
+  , fs      = require('fs')
+  , path    = require('path')
+  , glob    = require('glob')
+  , cwd     = process.cwd()
+  , uri     = path.resolve(cwd, 'server.uri')
+  , couchjs = path.resolve(cwd, 'bin/couchjs')
+  , tests   = args.length ? args : glob.sync('script/test/*.js')
+  , files = [
+      'script/json2.js',
+      'script/sha1.js',
+      'script/oauth.js',
+      'script/couch.js',
+      'script/couch_test_runner.js',
+      'script/couch_tests.js'
+    ].concat(tests, [
+      'util/couch_http.js',
+      'util/cli_runner.js'
+    ])
+  , tests = spawn(couchjs, ['-H', '-u', uri].concat(files));
+
+tests.stdout.on('data', function (data) {
+  process.stdout.write(data);
+});
+
+tests.stderr.on('data', function (data) {
+  process.stdout.write(data);
+});
+
+tests.on('exit', function (code) {
+  process.exit(code);
+});

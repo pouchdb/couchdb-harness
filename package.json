@@ -1,0 +1,23 @@
+{
+  "name": "couchdb-js-tests",
+  "version": "0.0.0",
+  "description": "A generalized port of the CouchDB JavaScript test harness.",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/nick-thompson/couchdb-js-tests.git"
+  },
+  "scripts": {
+    "start": "./bin/couchdb-harness"
+  },
+  "keywords": [
+    "couchdb",
+    "test",
+    "javascript"
+  ],
+  "author": "Nick Thompson",
+  "license": "Apache License",
+  "dependencies": {
+    "optimist": "~0.3.5",
+    "glob": "~3.1.21"
+  }
+}
