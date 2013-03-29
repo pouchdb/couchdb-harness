@@ -33,19 +33,16 @@ couchTests.basics = function(debug) {
   // creating a new DB should return Location header
   // and it should work for dbs with slashes (COUCHDB-411)
   var dbnames = ["test_suite_db", "test_suite_db%2Fwith_slashes"];
-
-  // TODO: This fails against pouchdb-server because we don't set location
-  // headers.
-  // dbnames.forEach(function(dbname) {
-  //   xhr = CouchDB.request("DELETE", "/" + dbname);
-  //   xhr = CouchDB.request("PUT", "/" + dbname);
-  //   TEquals(dbname,
-  //     xhr.getResponseHeader("Location").substr(-dbname.length),
-  //     "should return Location header to newly created document");
-  //   TEquals(CouchDB.protocol,
-  //     xhr.getResponseHeader("Location").substr(0, CouchDB.protocol.length),
-  //     "should return absolute Location header to newly created document");
-  // });
+  dbnames.forEach(function(dbname) {
+    xhr = CouchDB.request("DELETE", "/" + dbname);
+    xhr = CouchDB.request("PUT", "/" + dbname);
+    TEquals(dbname,
+      xhr.getResponseHeader("Location").substr(-dbname.length),
+      "should return Location header to newly created document");
+    TEquals(CouchDB.protocol,
+      xhr.getResponseHeader("Location").substr(0, CouchDB.protocol.length),
+      "should return absolute Location header to newly created document");
+  });
 
   // Get the database info, check the db_name
 
