@@ -13,9 +13,8 @@
 // Do some basic tests.
 couchTests.basics = function(debug) {
   var result = JSON.parse(CouchDB.request("GET", "/").responseText);
-
-  // TODO: This hardly checks anything... over generalized.
   T(typeof result === "object");
+  T(!!result.version);
 
   var db = new CouchDB("test_suite_db", {"X-Couch-Full-Commit":"false"});
   db.deleteDb();
@@ -45,10 +44,7 @@ couchTests.basics = function(debug) {
   });
 
   // Get the database info, check the db_name
-
-  // TODO: This fails against pouchdb-server because PouchDB's info method
-  // returns a field `name`.
-  // T(db.info().db_name == "test_suite_db");
+  T(db.info().db_name == "test_suite_db");
 
   T(CouchDB.allDbs().some(function (db) {
     return /test_suite_db/.test(db);
