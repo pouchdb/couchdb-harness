@@ -124,10 +124,8 @@ couchTests.basics = function(debug) {
 
   var results = db.query(mapFunction);
 
-  // TODO: This fails against pouchdb-server because PouchDB's query api
-  // doesn't return a `total_rows` property on the result object.
   // verify only one document found and the result value (doc.b).
-  // T(results.total_rows == 1 && results.rows[0].value == 16);
+  T(results.total_rows == 1 && results.rows[0].value == 16);
 
   // reopen document we saved earlier
   var existingDoc = db.open(id);
@@ -141,9 +139,8 @@ couchTests.basics = function(debug) {
   // redo the map query
   results = db.query(mapFunction);
 
-  // TODO: See previous todo.
   // the modified document should now be in the results.
-  // T(results.total_rows == 2);
+  T(results.total_rows == 2);
 
   // write 2 more documents
   T(db.save({a:3,b:9}).ok);
@@ -152,8 +149,7 @@ couchTests.basics = function(debug) {
   results = db.query(mapFunction);
 
   // 1 more document should now be in the result.
-  // TODO: See previous todo.
-  // T(results.total_rows == 3);
+  T(results.total_rows == 3);
 
   // TODO: Not sure why this is failing? doc_count is 7 apparently...
   // T(db.info().doc_count == 6);
@@ -175,8 +171,8 @@ couchTests.basics = function(debug) {
   results = db.query(mapFunction);
 
   // 1 less document should now be in the results.
-  // TODO: Same issue as above, PouchDB doesn't return total_rows.
-  // T(results.total_rows == 2);
+  T(results.total_rows == 2);
+  // TODO: Something is wrong with doc_count on pouchdb
   // T(db.info().doc_count == 5);
 
   // TODO: This fails against pouchdb-server because we don't address full
