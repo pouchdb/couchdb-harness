@@ -2,6 +2,38 @@
 
 >A generalized port of the CouchDB JavaScript test harness.
 
+## Install
+
+```
+npm install couchdb-harness
+```
+
+## Usage
+
+### Command Line
+
+To run the default configuration, you can simply type,
+
+```
+$ npm start
+```
+
+But the binary also accepts arguments to specify the port that the harness
+should run against, as well as which files to test,
+
+```
+./bin/couchdb-harness -p 5984 basics all_docs
+```
+
+### Node.js
+
+```
+var harness = require('couchdb-harness');
+harness.run(5984, ['basics', 'all_docs'], function (exitCode) {
+  process.exit(exitCode);
+});
+```
+
 ## License
 
 Copyright 2013 Nick Thompson
