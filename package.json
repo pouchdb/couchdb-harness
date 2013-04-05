@@ -6,6 +6,7 @@
     "type": "git",
     "url": "git://github.com/nick-thompson/couchdb-harness.git"
   },
+  "main": "./index.js",
   "scripts": {
     "start": "./bin/couchdb-harness"
   },
