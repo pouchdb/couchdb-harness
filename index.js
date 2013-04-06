@@ -36,6 +36,8 @@ module.exports = {
       return path.resolve(cwd, fp);
     });
 
+    console.log(files);
+
     fs.writeFile(uri, addr, function (err) {
       if (err) throw err;
       var tests = spawn(couchjs, ['-H', '-u', uri].concat(files));
