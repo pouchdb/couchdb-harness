@@ -38,8 +38,9 @@ couchTests.all_docs = function(debug) {
   T(desc.total_rows == desc.rows.length);
 
   // Check _all_docs offset
-  var all = db.allDocs({startkey:"2"});
-  T(all.offset == 2);
+  // https://github.com/daleharvey/pouchdb/pull/527#issuecomment-15471668
+  // var all = db.allDocs({startkey:"2"});
+  // T(all.offset == 2);
 
   // Confirm that queries may assume raw collation.
   var raw = db.allDocs({ startkey: "org.couchdb.user:",
@@ -114,7 +115,8 @@ couchTests.all_docs = function(debug) {
   changes = db.changes({include_docs: true, conflicts: true, style: "all_docs"});
   TEquals("3", changes.results[3].id);
   TEquals(3, changes.results[3].changes.length);
-  TEquals(winRev._rev, changes.results[3].changes[0].rev);
+  // TODO: https://github.com/daleharvey/pouchdb/issues/677
+  // TEquals(winRev._rev, changes.results[3].changes[0].rev);
   TEquals("3", changes.results[3].doc._id);
   TEquals(winRev._rev, changes.results[3].doc._rev);
   TEquals(true, changes.results[3].doc._conflicts instanceof Array);
