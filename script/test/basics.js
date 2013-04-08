@@ -176,18 +176,16 @@ couchTests.basics = function(debug) {
   // make sure we can still open
   T(db.open(existingDoc._id, {rev: existingDoc._rev}) != null);
 
-  // TODO: This fails against pouchdb-server because we don't set location
-  // headers.
   // document put's should return a Location header
-  // var xhr = CouchDB.request("PUT", "/test_suite_db/newdoc", {
-  //   body: JSON.stringify({"a":1})
-  // });
-  // TEquals("/test_suite_db/newdoc",
-  //   xhr.getResponseHeader("Location").substr(-21),
-  //   "should return Location header to newly created document");
-  // TEquals(CouchDB.protocol,
-  //   xhr.getResponseHeader("Location").substr(0, CouchDB.protocol.length),
-  //   "should return absolute Location header to newly created document");
+  var xhr = CouchDB.request("PUT", "/test_suite_db/newdoc", {
+    body: JSON.stringify({"a":1})
+  });
+  TEquals("/test_suite_db/newdoc",
+    xhr.getResponseHeader("Location").substr(-21),
+    "should return Location header to newly created document");
+  TEquals(CouchDB.protocol,
+    xhr.getResponseHeader("Location").substr(0, CouchDB.protocol.length),
+    "should return absolute Location header to newly created document");
 
   // deleting a non-existent doc should be 404
   xhr = CouchDB.request("DELETE", "/test_suite_db/doc-does-not-exist");
@@ -220,7 +218,7 @@ couchTests.basics = function(debug) {
 
   // Check some common error responses.
 
-  // TODO: PUT body not being an object is not an error in PouchDB
+  // TODO: https://github.com/daleharvey/pouchdb/issues/676
   // PUT body not an object
   // xhr = CouchDB.request("PUT", "/test_suite_db/bar", {body: "[]"});
   // T(xhr.status == 400);
