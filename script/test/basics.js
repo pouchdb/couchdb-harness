@@ -73,8 +73,7 @@ couchTests.basics = function(debug) {
 
   // make sure you can do a seq=true option
 
-  // TODO: This fails against pouchdb-server. Looks like PouchDB doesn't accept
-  // a local_seq option?
+  // TODO: 
   // var doc = db.open(id, {local_seq:true});
   // T(doc._local_seq == 1);
 
@@ -98,14 +97,13 @@ couchTests.basics = function(debug) {
   T(result[0].ok);
   T(result[1].ok);
 
-  // TODO: This fails against pouchdb-server. Looks like PouchDB doesn't accept
-  // `latest` option?
+  // TODO: https://github.com/daleharvey/pouchdb/issues/598
   // latest=true suppresses non-leaf revisions
   // var result = db.open("COUCHDB-954", {open_revs:[oldRev,newRev], latest:true});
   // T(result.length == 1, "should only get the child revision with latest=true");
   // T(result[0].ok._rev == newRev, "should get the child and not the parent");
 
-  // TODO: See above.
+  // TODO: https://github.com/daleharvey/pouchdb/issues/598
   // latest=true returns a child when you ask for a parent
   // var result = db.open("COUCHDB-954", {open_revs:[oldRev], latest:true});
   // T(result[0].ok._rev == newRev, "should get child when we requested parent");
@@ -151,7 +149,7 @@ couchTests.basics = function(debug) {
   // 1 more document should now be in the result.
   T(results.total_rows == 3);
 
-  // TODO: Not sure why this is failing? doc_count is 7 apparently...
+  // TODO: This probably fails because a previous test is commented out.
   // T(db.info().doc_count == 6);
 
   var reduceFunction = function(keys, values){
@@ -172,48 +170,11 @@ couchTests.basics = function(debug) {
 
   // 1 less document should now be in the results.
   T(results.total_rows == 2);
-  // TODO: Something is wrong with doc_count on pouchdb
+  // TODO: This probably fails because a previous test is commented out.
   // T(db.info().doc_count == 5);
-
-  // TODO: This fails against pouchdb-server because we don't address full
-  // commits the same way Couch does.
-  // make sure we can still open the old rev of the deleted doc
-  // T(db.open(existingDoc._id, {rev: existingDoc._rev}) != null);
-  // make sure restart works
-  // T(db.ensureFullCommit().ok);
-  // restartServer();
 
   // make sure we can still open
   T(db.open(existingDoc._id, {rev: existingDoc._rev}) != null);
-
-  // TODO: This fails against pouchdb-server because the server doesn't accept
-  // post requests of this form. Typically, PouchDB will internally mold documents
-  // and send PUT requests at the correct uri. 
-  // test that the POST response has a Location header
-  // var xhr = CouchDB.request("POST", "/test_suite_db", {
-  //   body: JSON.stringify({"foo":"bar"}),
-  //   headers: {"Content-Type": "application/json"}
-  // });
-  // console.log(xhr.responseText);
-  // var resp = JSON.parse(xhr.responseText);
-  // T(resp.ok);
-  // var loc = xhr.getResponseHeader("Location");
-  // T(loc, "should have a Location header");
-  // var locs = loc.split('/');
-  // T(locs[locs.length-1] == resp.id);
-  // T(locs[locs.length-2] == "test_suite_db");
-
-  // TODO: See above.
-  // test that that POST's with an _id aren't overriden with a UUID.
-  // var xhr = CouchDB.request("POST", "/test_suite_db", {
-  //   headers: {"Content-Type": "application/json"},
-  //   body: JSON.stringify({"_id": "oppossum", "yar": "matey"})
-  // });
-  // var resp = JSON.parse(xhr.responseText);
-  // T(resp.ok);
-  // T(resp.id == "oppossum");
-  // var doc = db.open("oppossum");
-  // T(doc.yar == "matey");
 
   // TODO: This fails against pouchdb-server because we don't set location
   // headers.
@@ -232,8 +193,7 @@ couchTests.basics = function(debug) {
   xhr = CouchDB.request("DELETE", "/test_suite_db/doc-does-not-exist");
   T(xhr.status == 404);
 
-  // TODO: CouchDB reserves top-level fields within a JSON document with a _
-  // prefix for use by CouchDB itself. PouchDB makes no such check...
+  // TODO: https://github.com/daleharvey/pouchdb/issues/600
   // Check for invalid document members
   // var bad_docs = [
   //   ["goldfish", {"_zing": 4}],
@@ -273,36 +233,19 @@ couchTests.basics = function(debug) {
   T(xhr.status == 400);
   result = JSON.parse(xhr.responseText);
   T(result.error == "bad_request");
-  // TODO: Do we need to worry about this? Probably can just remove it, seems
-  // awfully couchdb-specific.
-  // T(result.reason == "Request body must be a JSON object");
 
   // Body of an _all_docs  multi-get is not a {"key": [...]} structure.
   xhr = CouchDB.request("POST", "/test_suite_db/_all_docs", {body: "[]"});
   T(xhr.status == 400);
   T(result.error == "bad_request");
-  // TODO: Do we need to worry about this? Probably can just remove it, seems
-  // awfully couchdb-specific.
-  // T(result.reason == "Request body must be a JSON object");
 
-  // TODO: This errors out and crashes the server because neither PouchDB
-  // nor pouchdb-server validates the `keys` value before acting on it.
-  // pouchdb/src/adapters/pouch.leveldb.js#550
+  // TODO: https://github.com/daleharvey/pouchdb/issues/600 - pouch.leveldb.js#550
   // var data = "{\"keys\": 1}";
   // xhr = CouchDB.request("POST", "/test_suite_db/_all_docs", {body:data});
   // T(xhr.status == 400);
   // result = JSON.parse(xhr.responseText);
   // T(result.error == "bad_request");
   // T(result.reason == "`keys` member must be a array.");
-
-  // TODO: Not sure this is something we really need to keep around? If you
-  // delete a databse via pouchdb-server, the query params are ignored.
-  // oops, the doc id got lost in code nirwana
-  // xhr = CouchDB.request("DELETE", "/test_suite_db/?rev=foobarbaz");
-  // TEquals(400, xhr.status, "should return a bad request");
-  // result = JSON.parse(xhr.responseText);
-  // TEquals("bad_request", result.error);
-  // TEquals("You tried to DELETE a database with a ?=rev parameter. Did you mean to DELETE a document instead?", result.reason);
 
   // On restart, a request for creating a database that already exists can
   // not override the existing database file
@@ -312,13 +255,7 @@ couchTests.basics = function(debug) {
   TEquals(201, xhr.status);
 
   TEquals(true, db.save({"_id": "doc1"}).ok);
-
-  // TODO: This fails because pouchdb-server doesn't do ensure commits.
-  // TEquals(true, db.ensureFullCommit().ok);
-
   TEquals(1, db.info().doc_count);
-
-  restartServer();
 
   xhr = CouchDB.request("PUT", "/" + db.name);
   TEquals(412, xhr.status);
