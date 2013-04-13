@@ -39,11 +39,12 @@ couchTests.changes = function(debug) {
   T(resp.results.length == 1, "one doc db");
   T(resp.results[0].changes[0].rev == docFoo._rev);
 
+  // TODO: https://github.com/daleharvey/pouchdb/issues/685
   // test with callback
-  req = CouchDB.request("GET", "/test_suite_db/_changes?feed=continuous&timeout=10");
-  var lines = req.responseText.split("\n");
-  T(JSON.parse(lines[0]).changes[0].rev == docFoo._rev);
-  T(JSON.parse(lines[1]).last_seq == 1);
+  // req = CouchDB.request("GET", "/test_suite_db/_changes?feed=continuous&timeout=10");
+  // var lines = req.responseText.split("\n");
+  // T(JSON.parse(lines[0]).changes[0].rev == docFoo._rev);
+  // T(JSON.parse(lines[1]).last_seq == 1);
 
   var xhr;
 
