@@ -191,40 +191,37 @@ couchTests.basics = function(debug) {
   xhr = CouchDB.request("DELETE", "/test_suite_db/doc-does-not-exist");
   T(xhr.status == 404);
 
-  // TODO: https://github.com/daleharvey/pouchdb/issues/600
   // Check for invalid document members
-  // var bad_docs = [
-  //   ["goldfish", {"_zing": 4}],
-  //   ["zebrafish", {"_zoom": "hello"}],
-  //   ["mudfish", {"zane": "goldfish", "_fan": "something smells delicious"}],
-  //   ["tastyfish", {"_bing": {"wha?": "soda can"}}]
-  // ];
-  // var test_doc = function(info) {
-  // var data = JSON.stringify(info[1]);
-  //   xhr = CouchDB.request("PUT", "/test_suite_db/" + info[0], {body: data});
-  //   T(xhr.status == 500);
-  //   result = JSON.parse(xhr.responseText);
-  //   T(result.error == "doc_validation");
-
-  //   xhr = CouchDB.request("POST", "/test_suite_db/", {
-  //     headers: {"Content-Type": "application/json"},
-  //     body: data
-  //   });
-  //   T(xhr.status == 500);
-  //   result = JSON.parse(xhr.responseText);
-  //   T(result.error == "doc_validation");
-  // };
-  // bad_docs.forEach(test_doc);
+  var bad_docs = [
+    ["goldfish", {"_zing": 4}],
+    ["zebrafish", {"_zoom": "hello"}],
+    ["mudfish", {"zane": "goldfish", "_fan": "something smells delicious"}],
+    ["tastyfish", {"_bing": {"wha?": "soda can"}}]
+  ];
+  var test_doc = function(info) {
+    var data = JSON.stringify(info[1]);
+    xhr = CouchDB.request("PUT", "/test_suite_db/" + info[0], {body: data});
+    T(xhr.status == 500);
+    result = JSON.parse(xhr.responseText);
+    T(result.error == "doc_validation");
+    xhr = CouchDB.request("POST", "/test_suite_db/", {
+      headers: {"Content-Type": "application/json"},
+      body: data
+    });
+    T(xhr.status == 500);
+    result = JSON.parse(xhr.responseText);
+    T(result.error == "doc_validation");
+  };
+  bad_docs.forEach(test_doc);
 
   // Check some common error responses.
 
-  // TODO: https://github.com/daleharvey/pouchdb/issues/676
   // PUT body not an object
-  // xhr = CouchDB.request("PUT", "/test_suite_db/bar", {body: "[]"});
-  // T(xhr.status == 400);
-  // result = JSON.parse(xhr.responseText);
-  // T(result.error == "bad_request");
-  // T(result.reason == "Document must be a JSON object");
+  xhr = CouchDB.request("PUT", "/test_suite_db/bar", {body: "[]"});
+  T(xhr.status == 400);
+  result = JSON.parse(xhr.responseText);
+  T(result.error == "bad_request");
+  T(result.reason == "Document must be a JSON object");
 
   // Body of a _bulk_docs is not an object
   xhr = CouchDB.request("POST", "/test_suite_db/_bulk_docs", {body: "[]"});
