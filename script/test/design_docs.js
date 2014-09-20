@@ -203,7 +203,14 @@ couchTests.design_docs = function(debug) {
     );
     var resp = JSON.parse(xhr.responseText);
 
-    TEquals(resp.rev, db.save(designDoc).rev);
+    // COUCHDB HARNESS CHANGE: The first uncommented line after this
+    // used to be:
+    //
+    // TEquals(resp.rev, db.save(designDoc).rev);
+    //
+    // Since PouchDB doesn't have deterministic revisions (#2451) we do
+    // this instead: 
+    db.save(designDoc)
 
     // test that editing a show fun on the ddoc results in a change in output
     xhr = CouchDB.request("GET", "/test_suite_db/_design/test/_show/simple");

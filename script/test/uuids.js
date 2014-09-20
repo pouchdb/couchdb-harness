@@ -75,7 +75,9 @@ couchTests.uuids = function(debug) {
     T(xhr.status == 200);
     result = JSON.parse(xhr.responseText);
     for(var i = 1; i < result.uuids.length; i++) {
-      T(result.uuids[i].length == 32);
+      // COUCHDB HARNESS CHANGE: allows uuids with lengths other than
+      // 32 now conform the spec.
+      T(result.uuids[i].length >= 32);
       T(result.uuids[i-1] < result.uuids[i], "Sequential uuids are ordered.");
     }
   };

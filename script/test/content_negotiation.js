@@ -28,7 +28,10 @@ couchTests.content_negotiation = function(debug) {
   TEquals("\n", text[text.length-1]);
 
   xhr = CouchDB.request("GET", "/test_suite_db/", {
-    headers: {"Accept": "text/html; text/plain;*/*"}
+    //COUCHDB-HARNESS change: the original tests uses an invalid/
+    //uncommon header format that CouchDB's parser happens to
+    //understand.
+    headers: {"Accept": "text/html, text/plain, */*"}
   });
   TEquals("text/plain; charset=utf-8", xhr.getResponseHeader("Content-Type"));
 

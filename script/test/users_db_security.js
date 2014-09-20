@@ -100,7 +100,8 @@ couchTests.users_db_security = function(debug) {
     userDoc = usersDb.open("org.couchdb.user:jchris");
     TEquals(undefined, userDoc.password, "password field should be null 1");
     TEquals(40, userDoc.derived_key.length, "derived_key should exist");
-    TEquals(32, userDoc.salt.length, "salt should exist");
+    // COUCHDB HARNESS CHANGE: salt is a bit bigger in pouchdb-auth
+    T(userDoc.salt.length >= 32, "salt should exist");
 
     // create server admin
     run_on_modified_server([
