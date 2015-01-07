@@ -37,9 +37,11 @@ couchTests.all_docs = function(debug) {
   var desc = db.allDocs({descending:true});
   T(desc.total_rows == desc.rows.length);
 
-  // Check _all_docs offset
-  var all = db.allDocs({startkey:"2"});
-  T(all.offset == 2);
+  skip('https://github.com/daleharvey/pouchdb/pull/527#issuecomment-15471668', function () {
+    // Check _all_docs offset
+    var all = db.allDocs({startkey:"2"});
+    T(all.offset == 2);
+  });
 
   // Confirm that queries may assume raw collation.
   var raw = db.allDocs({ startkey: "org.couchdb.user:",

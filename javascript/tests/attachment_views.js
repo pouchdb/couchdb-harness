@@ -124,17 +124,19 @@ couchTests.attachment_views= function(debug) {
   T(result.rows[0].doc._attachments['baz.txt'].encoding === undefined);
   T(result.rows[0].doc._attachments['baz.txt'].encoded_length === undefined);
 
-  var result = db.query(mapFunction, null, {
-    startkey: 30,
-    endkey: 39,
-    include_docs: true,
-    att_encoding_info: true
-  });
+  skip('att_encoding_info unsupported', function () {
+    var result = db.query(mapFunction, null, {
+      startkey: 30,
+      endkey: 39,
+      include_docs: true,
+      att_encoding_info: true
+    });
 
-  T(result.rows.length == 10);
-  T(result.rows[0].value == 3);
-  T(result.rows[0].doc._attachments['baz.txt'].data === undefined);
-  T(result.rows[0].doc._attachments['baz.txt'].stub === true);
-  T(result.rows[0].doc._attachments['baz.txt'].encoding === "gzip");
-  T(result.rows[0].doc._attachments['baz.txt'].encoded_length === 47);
+    T(result.rows.length == 10);
+    T(result.rows[0].value == 3);
+    T(result.rows[0].doc._attachments['baz.txt'].data === undefined);
+    T(result.rows[0].doc._attachments['baz.txt'].stub === true);
+    T(result.rows[0].doc._attachments['baz.txt'].encoding === "gzip");
+    T(result.rows[0].doc._attachments['baz.txt'].encoded_length === 47);
+  });
 };

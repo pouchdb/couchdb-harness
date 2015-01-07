@@ -18,7 +18,9 @@
  * test object, return an error.
  */
 function runTest() {
-  CouchDB.reloadConfig();
+  skip('/_config/_reload is undocumented', function () {
+    CouchDB.reloadConfig();
+  });
   var count = 0;
   var start = new Date().getTime();
 

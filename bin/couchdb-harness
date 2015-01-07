@@ -1,10 +1,19 @@
 #!/usr/bin/env node
 
-var args    = require('optimist').argv
-  , port    = args.p || null
-  , tests   = args._ || null
-  , harness = require('..');
+"use strict";
+
+var args    = require('optimist').argv,
+    port    = args.p || null,
+    tests   = args._ || null,
+    colors  = require('colors/safe'),
+    harness = require('..');
 
 harness.run(port, tests, function (exitCode) {
+  console.log("");
+  if (exitCode) {
+    console.log(colors.red("FAIL!"));
+  } else {
+    console.log(colors.green("SUCCES!"));
+  }
   process.exit(exitCode);
 });

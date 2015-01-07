@@ -13,7 +13,9 @@
 // Do some basic tests.
 couchTests.basics = function(debug) {
   var result = JSON.parse(CouchDB.request("GET", "/").responseText);
-  T(result.couchdb == "Welcome");
+  skip("couchdb: 'Welcome' isn't set for pouchdb-server'", function () {
+    T(result.couchdb == "Welcome");
+  });
 
   var db = new CouchDB("test_suite_db", {"X-Couch-Full-Commit":"false"});
   db.deleteDb();
@@ -91,14 +93,16 @@ couchTests.basics = function(debug) {
   T(result[0].ok);
   T(result[1].ok);
 
-  // latest=true suppresses non-leaf revisions
-  var result = db.open("COUCHDB-954", {open_revs:[oldRev,newRev], latest:true});
-  T(result.length == 1, "should only get the child revision with latest=true");
-  T(result[0].ok._rev == newRev, "should get the child and not the parent");
+  skip("TODO: https://github.com/pouchdb/pouchdb/issues/598", function () {
+    // latest=true suppresses non-leaf revisions
+    var result = db.open("COUCHDB-954", {open_revs:[oldRev,newRev], latest:true});
+    T(result.length == 1, "should only get the child revision with latest=true");
+    T(result[0].ok._rev == newRev, "should get the child and not the parent");
 
-  // latest=true returns a child when you ask for a parent
-  var result = db.open("COUCHDB-954", {open_revs:[oldRev], latest:true});
-  T(result[0].ok._rev == newRev, "should get child when we requested parent");
+    // latest=true returns a child when you ask for a parent
+    var result = db.open("COUCHDB-954", {open_revs:[oldRev], latest:true});
+    T(result[0].ok._rev == newRev, "should get child when we requested parent");
+  });
 
   // clean up after ourselves
   db.save({_id:"COUCHDB-954", _rev:newRev, _deleted:true});
@@ -260,7 +264,9 @@ couchTests.basics = function(debug) {
   T(xhr.status == 400);
   result = JSON.parse(xhr.responseText);
   T(result.error == "bad_request");
-  T(result.reason == "`keys` member must be a array.");
+  skip("Error text doesn't exactly match", function () {
+    T(result.reason == "`keys` member must be a array.");
+  });
 
   // oops, the doc id got lost in code nirwana
   xhr = CouchDB.request("DELETE", "/test_suite_db/?rev=foobarbaz");

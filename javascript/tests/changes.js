@@ -40,22 +40,26 @@ couchTests.changes = function(debug) {
 
   // test with callback
 
-  run_on_modified_server(
-    [{section: "httpd",
-      key: "allow_jsonp",
-      value: "true"}],
-  function() {
-    var xhr = CouchDB.request("GET", "/test_suite_db/_changes?callback=jsonp");
-    T(xhr.status == 200);
-    jsonp_flag = 0;
-    eval(xhr.responseText);
-    T(jsonp_flag == 1);
+  skip("JSONP isn't supported by pouchdb-server (yet?)", function () {
+    run_on_modified_server(
+      [{section: "httpd",
+        key: "allow_jsonp",
+        value: "true"}],
+    function() {
+      var xhr = CouchDB.request("GET", "/test_suite_db/_changes?callback=jsonp");
+      T(xhr.status == 200);
+      jsonp_flag = 0;
+      eval(xhr.responseText);
+      T(jsonp_flag == 1);
+    });
   });
 
-  req = CouchDB.request("GET", "/test_suite_db/_changes?feed=continuous&timeout=10");
-  var lines = req.responseText.split("\n");
-  T(JSON.parse(lines[0]).changes[0].rev == docFoo._rev);
-  T(JSON.parse(lines[1]).last_seq == 1);
+  skip("FIXME: timeout ignored (probably); hangs forever", function () {
+    req = CouchDB.request("GET", "/test_suite_db/_changes?feed=continuous&timeout=10");
+    var lines = req.responseText.split("\n");
+    T(JSON.parse(lines[0]).changes[0].rev == docFoo._rev);
+    T(JSON.parse(lines[1]).last_seq == 1);
+  });
 
   var xhr;
 
@@ -424,35 +428,37 @@ couchTests.changes = function(debug) {
   T(resp.results[0].id === "blah");
 
 
-  // test for userCtx
-  run_on_modified_server(
-    [{section: "httpd",
-      key: "authentication_handlers",
-      value: "{couch_httpd_auth, special_test_authentication_handler}"},
-     {section:"httpd",
-      key: "WWW-Authenticate",
-      value:  "X-Couch-Test-Auth"}],
+  skip("pouchdb-server doesn't support the req arg in a filter function", function () {
+    // test for userCtx
+    run_on_modified_server(
+      [{section: "httpd",
+        key: "authentication_handlers",
+        value: "{couch_httpd_auth, special_test_authentication_handler}"},
+       {section:"httpd",
+        key: "WWW-Authenticate",
+        value:  "X-Couch-Test-Auth"}],
 
-    function() {
-      var authOpts = {"headers":{"WWW-Authenticate": "X-Couch-Test-Auth Chris Anderson:mp3"}};
+      function() {
+        var authOpts = {"headers":{"WWW-Authenticate": "X-Couch-Test-Auth Chris Anderson:mp3"}};
 
-      var req = CouchDB.request("GET", "/_session", authOpts);
-      var resp = JSON.parse(req.responseText);
+        var req = CouchDB.request("GET", "/_session", authOpts);
+        var resp = JSON.parse(req.responseText);
 
-      T(db.save({"user" : "Noah Slater"}).ok);
-      var req = CouchDB.request("GET", "/test_suite_db/_changes?filter=changes_filter/userCtx", authOpts);
-      var resp = JSON.parse(req.responseText);
-      T(resp.results.length == 0);
+        T(db.save({"user" : "Noah Slater"}).ok);
+        var req = CouchDB.request("GET", "/test_suite_db/_changes?filter=changes_filter/userCtx", authOpts);
+        var resp = JSON.parse(req.responseText);
+        T(resp.results.length == 0);
 
-      var docResp = db.save({"user" : "Chris Anderson"});
-      T(docResp.ok);
-      T(db.ensureFullCommit().ok);
-      req = CouchDB.request("GET", "/test_suite_db/_changes?filter=changes_filter/userCtx", authOpts);
-      resp = JSON.parse(req.responseText);
-      T(resp.results.length == 1, "userCtx");
-      T(resp.results[0].id == docResp.id);
-    }
-  );
+        var docResp = db.save({"user" : "Chris Anderson"});
+        T(docResp.ok);
+        T(db.ensureFullCommit().ok);
+        req = CouchDB.request("GET", "/test_suite_db/_changes?filter=changes_filter/userCtx", authOpts);
+        resp = JSON.parse(req.responseText);
+        T(resp.results.length == 1, "userCtx");
+        T(resp.results[0].id == docResp.id);
+      }
+    );
+  });
 
   req = CouchDB.request("GET", "/test_suite_db/_changes?limit=1");
   resp = JSON.parse(req.responseText);
@@ -462,110 +468,113 @@ couchTests.changes = function(debug) {
   var id = db.save({'food' : 'pizza'}).id;
   db.bulkSave([{_id: id, 'food' : 'pasta'}], {all_or_nothing:true});
 
-  req = CouchDB.request("GET", "/test_suite_db/_changes?filter=changes_filter/conflicted");
-  resp = JSON.parse(req.responseText);
-  T(resp.results.length == 1, "filter=changes_filter/conflicted");
-
-  // test with erlang filter function
-  run_on_modified_server([{
-    section: "native_query_servers",
-    key: "erlang",
-    value: "{couch_native_process, start_link, []}"
-  }], function() {
-    var erl_ddoc = {
-      _id: "_design/erlang",
-      language: "erlang",
-      filters: {
-        foo:
-          'fun({Doc}, Req) -> ' +
-          '  case couch_util:get_value(<<"value">>, Doc) of' +
-          '  undefined -> false;' +
-          '  Value -> (Value rem 2) =:= 0;' +
-          '  _ -> false' +
-          '  end ' +
-          'end.'
-      }
-    };
-
-    db.deleteDb();
-    db.createDb();
-    T(db.save(erl_ddoc).ok);
-
-    var req = CouchDB.request("GET", "/test_suite_db/_changes?filter=erlang/foo");
-    var resp = JSON.parse(req.responseText);
-    T(resp.results.length === 0);
-
-    T(db.save({_id: "doc1", value : 1}).ok);
-    T(db.save({_id: "doc2", value : 2}).ok);
-    T(db.save({_id: "doc3", value : 3}).ok);
-    T(db.save({_id: "doc4", value : 4}).ok);
-
-    var req = CouchDB.request("GET", "/test_suite_db/_changes?filter=erlang/foo");
-    var resp = JSON.parse(req.responseText);
-    T(resp.results.length === 2);
-    T(resp.results[0].id === "doc2");
-    T(resp.results[1].id === "doc4");
-
-    // test filtering on docids
-    //
-
-    var options = {
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({"doc_ids": ["something", "anotherthing", "andmore"]})
-    };
-
-    var req = CouchDB.request("POST", "/test_suite_db/_changes?filter=_doc_ids", options);
-    var resp = JSON.parse(req.responseText);
-    T(resp.results.length === 0);
-
-    T(db.save({"_id":"something", "bop" : "plankton"}).ok);
-    var req = CouchDB.request("POST", "/test_suite_db/_changes?filter=_doc_ids", options);
-    var resp = JSON.parse(req.responseText);
-    T(resp.results.length === 1);
-    T(resp.results[0].id === "something");
-
-    T(db.save({"_id":"anotherthing", "bop" : "plankton"}).ok);
-    var req = CouchDB.request("POST", "/test_suite_db/_changes?filter=_doc_ids", options);
-    var resp = JSON.parse(req.responseText);
-    T(resp.results.length === 2);
-    T(resp.results[0].id === "something");
-    T(resp.results[1].id === "anotherthing");
-
-    var docids = JSON.stringify(["something", "anotherthing", "andmore"]),
-        req = CouchDB.request("GET", "/test_suite_db/_changes?filter=_doc_ids&doc_ids="+docids, options);
-    var resp = JSON.parse(req.responseText);
-    T(resp.results.length === 2);
-    T(resp.results[0].id === "something");
-    T(resp.results[1].id === "anotherthing");
-
-    var req = CouchDB.request("GET", "/test_suite_db/_changes?filter=_design");
-    var resp = JSON.parse(req.responseText);
-    T(resp.results.length === 1);
-    T(resp.results[0].id === "_design/erlang");
-
-
-    if (!is_safari && xhr) {
-        // filter docids with continuous
-        xhr = CouchDB.newXhr();
-        xhr.open("POST", CouchDB.proxyUrl("/test_suite_db/_changes?feed=continuous&timeout=500&since=7&filter=_doc_ids"), true);
-        xhr.setRequestHeader("Content-Type", "application/json");
-
-        xhr.send(options.body);
-
-        T(db.save({"_id":"andmore", "bop" : "plankton"}).ok);
-
-        waitForSuccess(function() {
-            if (xhr.readyState != 4) {
-              throw("still waiting");
-            }
-            return true;
-        }, "andmore-only");
-
-        var line = JSON.parse(xhr.responseText.split("\n")[0]);
-        T(line.seq == 8);
-        T(line.id == "andmore");
-    }
+  skip("https://github.com/pouchdb/pouchdb/issues/700", function () {
+    req = CouchDB.request("GET", "/test_suite_db/_changes?filter=changes_filter/conflicted");
+    resp = JSON.parse(req.responseText);
+    T(resp.results.length == 1, "filter=changes_filter/conflicted");
   });
+
+  skip("Native erlang makes no sense for pouchdb-server. Also: pouchdb-server doesn't support the '_design' filter.", function () {
+    // test with erlang filter function
+    run_on_modified_server([{
+      section: "native_query_servers",
+      key: "erlang",
+      value: "{couch_native_process, start_link, []}"
+    }], function() {
+      var erl_ddoc = {
+        _id: "_design/erlang",
+        language: "erlang",
+        filters: {
+          foo:
+            'fun({Doc}, Req) -> ' +
+            '  case couch_util:get_value(<<"value">>, Doc) of' +
+            '  undefined -> false;' +
+            '  Value -> (Value rem 2) =:= 0;' +
+            '  _ -> false' +
+            '  end ' +
+            'end.'
+        }
+      };
+
+      db.deleteDb();
+      db.createDb();
+      T(db.save(erl_ddoc).ok);
+
+      var req = CouchDB.request("GET", "/test_suite_db/_changes?filter=erlang/foo");
+      var resp = JSON.parse(req.responseText);
+      T(resp.results.length === 0);
+
+      T(db.save({_id: "doc1", value : 1}).ok);
+      T(db.save({_id: "doc2", value : 2}).ok);
+      T(db.save({_id: "doc3", value : 3}).ok);
+      T(db.save({_id: "doc4", value : 4}).ok);
+
+      var req = CouchDB.request("GET", "/test_suite_db/_changes?filter=erlang/foo");
+      var resp = JSON.parse(req.responseText);
+      T(resp.results.length === 2);
+      T(resp.results[0].id === "doc2");
+      T(resp.results[1].id === "doc4");
+
+      var req = CouchDB.request("GET", "/test_suite_db/_changes?filter=_design");
+      var resp = JSON.parse(req.responseText);
+      T(resp.results.length === 1);
+      T(resp.results[0].id === "_design/erlang");
+    });
+  });
+
+  // test filtering on docids
+  //
+
+  var options = {
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({"doc_ids": ["something", "anotherthing", "andmore"]})
+  };
+
+  var req = CouchDB.request("POST", "/test_suite_db/_changes?filter=_doc_ids", options);
+  var resp = JSON.parse(req.responseText);
+  T(resp.results.length === 0);
+
+  T(db.save({"_id":"something", "bop" : "plankton"}).ok);
+  var req = CouchDB.request("POST", "/test_suite_db/_changes?filter=_doc_ids", options);
+  var resp = JSON.parse(req.responseText);
+  T(resp.results.length === 1);
+  T(resp.results[0].id === "something");
+
+  T(db.save({"_id":"anotherthing", "bop" : "plankton"}).ok);
+  var req = CouchDB.request("POST", "/test_suite_db/_changes?filter=_doc_ids", options);
+  var resp = JSON.parse(req.responseText);
+  T(resp.results.length === 2);
+  T(resp.results[0].id === "something");
+  T(resp.results[1].id === "anotherthing");
+
+  var docids = JSON.stringify(["something", "anotherthing", "andmore"]),
+      req = CouchDB.request("GET", "/test_suite_db/_changes?filter=_doc_ids&doc_ids="+docids, options);
+  var resp = JSON.parse(req.responseText);
+  T(resp.results.length === 2);
+  T(resp.results[0].id === "something");
+  T(resp.results[1].id === "anotherthing");
+
+  if (!is_safari && xhr) {
+      // filter docids with continuous
+      xhr = CouchDB.newXhr();
+      xhr.open("POST", CouchDB.proxyUrl("/test_suite_db/_changes?feed=continuous&timeout=500&since=7&filter=_doc_ids"), true);
+      xhr.setRequestHeader("Content-Type", "application/json");
+
+      xhr.send(options.body);
+
+      T(db.save({"_id":"andmore", "bop" : "plankton"}).ok);
+
+      waitForSuccess(function() {
+          if (xhr.readyState != 4) {
+            throw("still waiting");
+          }
+          return true;
+      }, "andmore-only");
+
+      var line = JSON.parse(xhr.responseText.split("\n")[0]);
+      T(line.seq == 8);
+      T(line.id == "andmore");
+  }
 
   // COUCHDB-1037 - empty result for ?limit=1&filter=foo/bar in some cases
   T(db.deleteDb());
@@ -609,9 +618,11 @@ couchTests.changes = function(debug) {
   TEquals("0", resp.results[0].id);
   TEquals("1", resp.results[1].id);
 
-  TEquals(0, CouchDB.requestStats(['couchdb', 'httpd', 'clients_requesting_changes'], true).value);
-  CouchDB.request("GET", "/" + db.name + "/_changes");
-  TEquals(0, CouchDB.requestStats(['couchdb', 'httpd', 'clients_requesting_changes'], true).value);
+  skip("PouchDB server doesn't support stats", function () {
+    TEquals(0, CouchDB.requestStats(['couchdb', 'httpd', 'clients_requesting_changes'], true).value);
+    CouchDB.request("GET", "/" + db.name + "/_changes");
+    TEquals(0, CouchDB.requestStats(['couchdb', 'httpd', 'clients_requesting_changes'], true).value);
+  });
 
   // COUCHDB-1256
   T(db.deleteDb());
@@ -640,30 +651,32 @@ couchTests.changes = function(debug) {
   TEquals(2, resp.results[0].changes.length);
 
   // COUCHDB-1852
-  T(db.deleteDb());
-  T(db.createDb());
+  skip("EventSource isn't supported by PouchDB-Server", function () {
+    T(db.deleteDb());
+    T(db.createDb());
 
-  // create 4 documents... this assumes the update sequnce will start from 0 and get to 4
-  db.save({"bop" : "foom"});
-  db.save({"bop" : "foom"});
-  db.save({"bop" : "foom"});
-  db.save({"bop" : "foom"});
+    // create 4 documents... this assumes the update sequnce will start from 0 and get to 4
+    db.save({"bop" : "foom"});
+    db.save({"bop" : "foom"});
+    db.save({"bop" : "foom"});
+    db.save({"bop" : "foom"});
 
-  // simulate an EventSource request with a Last-Event-ID header
-  req = CouchDB.request("GET", "/test_suite_db/_changes?feed=eventsource&timeout=0&since=0",
-        {"headers": {"Accept": "text/event-stream", "Last-Event-ID": "2"}});
+    // simulate an EventSource request with a Last-Event-ID header
+    req = CouchDB.request("GET", "/test_suite_db/_changes?feed=eventsource&timeout=0&since=0",
+          {"headers": {"Accept": "text/event-stream", "Last-Event-ID": "2"}});
 
-  // "parse" the eventsource response and collect only the "id: ..." lines
-  var changes = req.responseText.split('\n')
-     .map(function (el) {
-        return el.split(":").map(function (el) { return el.trim()});
-     })
-     .filter(function (el) { return (el[0] === "id"); })
+    // "parse" the eventsource response and collect only the "id: ..." lines
+    var changes = req.responseText.split('\n')
+       .map(function (el) {
+          return el.split(":").map(function (el) { return el.trim()});
+       })
+       .filter(function (el) { return (el[0] === "id"); })
 
-  // make sure we only got 2 changes, and they are update_seq=3 and update_seq=4
-  T(changes.length === 2);
-  T(changes[0][1] === "3");
-  T(changes[1][1] === "4");
+    // make sure we only got 2 changes, and they are update_seq=3 and update_seq=4
+    T(changes.length === 2);
+    T(changes[0][1] === "3");
+    T(changes[1][1] === "4");
+  });
 
   // COUCHDB-1923
   T(db.deleteDb());
@@ -720,18 +733,20 @@ couchTests.changes = function(debug) {
   T(resp.results[0].doc._attachments['bar.txt'].encoding === undefined);
   T(resp.results[0].doc._attachments['bar.txt'].encoded_length === undefined);
 
-  var req = CouchDB.request("GET", "/test_suite_db/_changes?include_docs=true&att_encoding_info=true");
-  var resp = JSON.parse(req.responseText);
+  skip("att_encoding_info isn't supported by PouchDB-Server", function () {
+    var req = CouchDB.request("GET", "/test_suite_db/_changes?include_docs=true&att_encoding_info=true");
+    var resp = JSON.parse(req.responseText);
 
-  T(resp.results.length == 10);
-  T(resp.results[0].doc._attachments['foo.txt'].stub === true);
-  T(resp.results[0].doc._attachments['foo.txt'].data === undefined);
-  T(resp.results[0].doc._attachments['foo.txt'].encoding === "gzip");
-  T(resp.results[0].doc._attachments['foo.txt'].encoded_length === 47);
-  T(resp.results[0].doc._attachments['bar.txt'].stub === true);
-  T(resp.results[0].doc._attachments['bar.txt'].data === undefined);
-  T(resp.results[0].doc._attachments['bar.txt'].encoding === "gzip");
-  T(resp.results[0].doc._attachments['bar.txt'].encoded_length === 47);
+    T(resp.results.length == 10);
+    T(resp.results[0].doc._attachments['foo.txt'].stub === true);
+    T(resp.results[0].doc._attachments['foo.txt'].data === undefined);
+    T(resp.results[0].doc._attachments['foo.txt'].encoding === "gzip");
+    T(resp.results[0].doc._attachments['foo.txt'].encoded_length === 47);
+    T(resp.results[0].doc._attachments['bar.txt'].stub === true);
+    T(resp.results[0].doc._attachments['bar.txt'].data === undefined);
+    T(resp.results[0].doc._attachments['bar.txt'].encoding === "gzip");
+    T(resp.results[0].doc._attachments['bar.txt'].encoded_length === 47);
+  });
 
   // cleanup
   db.deleteDb();
