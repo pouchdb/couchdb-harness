@@ -84,13 +84,15 @@ couchTests.uuids = function(debug) {
   var xhr = CouchDB.request("GET", "/_uuids?count=1001");
   TEquals(403, xhr.status, "should error when count > max_count");
 
-  run_on_modified_server([{
-      "section": "uuids",
-      "key": "algorithm",
-      "value": "sequential",
-    }],
-    seq_testfun
-  );
+  skip("PouchDB Server doesn't support multiple uuid algorithms", function () {
+    run_on_modified_server([{
+        "section": "uuids",
+        "key": "algorithm",
+        "value": "sequential",
+      }],
+      seq_testfun
+    );
+  });
 
   // Test utc_random uuids
   var utc_testfun = function() {
@@ -113,13 +115,15 @@ couchTests.uuids = function(debug) {
     T(u1 < u2, "UTC uuids are only roughly ordered, so this assertion may fail occasionally. Don't sweat it.");
   };
 
-  run_on_modified_server([{
-      "section": "uuids",
-      "key": "algorithm",
-      "value": "utc_random"
-    }],
-    utc_testfun
-  );
+  skip("PouchDB Server doesn't support multiple uuid algorithms", function () {
+    run_on_modified_server([{
+        "section": "uuids",
+        "key": "algorithm",
+        "value": "utc_random"
+      }],
+      utc_testfun
+    );
+  });
 
   // Test utc_id uuids
   var utc_id_suffix = "frog";
@@ -134,16 +138,17 @@ couchTests.uuids = function(debug) {
     }
   };
 
-  run_on_modified_server([{
-      "section": "uuids",
-      "key": "algorithm",
-      "value": "utc_id"
-    }, {
-      "section": "uuids",
-      "key": "utc_id_suffix",
-      "value": utc_id_suffix
-    }],
-    suffix_testfun
-  );
-
+  skip("PouchDB Server doesn't support multiple uuid algorithms & thus also no utc_id_suffix", function () {
+    run_on_modified_server([{
+        "section": "uuids",
+        "key": "algorithm",
+        "value": "utc_id"
+      }, {
+        "section": "uuids",
+        "key": "utc_id_suffix",
+        "value": utc_id_suffix
+      }],
+      suffix_testfun
+    );
+  });
  };

@@ -75,7 +75,6 @@ var blacklist = [
     'javascript/tests/update_documents.js',
     'javascript/tests/users_db.js',
     'javascript/tests/users_db_security.js',
-    'javascript/tests/uuids.js',
     'javascript/tests/view_collation.js',
     'javascript/tests/view_collation_raw.js',
     'javascript/tests/view_compaction.js',
@@ -87,8 +86,7 @@ var blacklist = [
     'javascript/tests/view_offsets.js',
     'javascript/tests/view_pagination.js',
     'javascript/tests/view_sandboxing.js',
-    'javascript/tests/view_update_seq.js',
-    'javascript/tests/view_xml.js'
+    'javascript/tests/view_update_seq.js'
   ];
 
 module.exports = {
