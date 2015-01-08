@@ -22,7 +22,6 @@ var blacklist = [
     'javascript/tests/auth_cache.js',
     'javascript/tests/batch_save.js',
     'javascript/tests/coffee.js',
-    'javascript/tests/config.js',
     'javascript/tests/conflicts.js',
     'javascript/tests/cookie_auth.js',
     'javascript/tests/delayed_commits.js',
