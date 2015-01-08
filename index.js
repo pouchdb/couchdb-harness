@@ -17,9 +17,7 @@ try {
 }
 
 var blacklist = [
-    'javascript/tests/attachment_names.js',
     'javascript/tests/attachment_ranges.js',
-    'javascript/tests/attachments.js',
     'javascript/tests/attachments_multipart.js',
     'javascript/tests/auth_cache.js',
     'javascript/tests/batch_save.js',

@@ -83,13 +83,15 @@ couchTests.attachment_names = function(debug) {
     }
   };
 
-  try {
-    db.save(binAttDoc);
-    TEquals(1, 2, "Attachment name with leading underscore saved. Should never show!");
-  } catch (e) {
-    TEquals("bad_request", e.error, "attachment_name: leading underscore");
-    TEquals("Attachment name can't start with '_'", e.reason, "attachment_name: leading underscore");
-  }
+  skip('Attachment names with a leading underscore are allowed in PouchDB Server ()', function () {
+    try {
+      db.save(binAttDoc);
+      TEquals(1, 2, "Attachment name with leading underscore saved. Should never show!");
+    } catch (e) {
+      TEquals("bad_request", e.error, "attachment_name: leading underscore");
+      TEquals("Attachment name can't start with '_'", e.reason, "attachment_name: leading underscore");
+    }
+  });
 
   // todo: form uploads, waiting for cmlenz' test case for form uploads
 
