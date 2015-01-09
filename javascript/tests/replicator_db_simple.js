@@ -49,15 +49,19 @@ couchTests.replicator_db_simple = function(debug) {
     T(typeof repDoc1._replication_id  === "string");
     T(typeof repDoc1._replication_stats === "object", "doc has stats");
     var stats = repDoc1._replication_stats;
-    TEquals(docs1.length, stats.revisions_checked,
-       "right # of revisions_checked");
-    TEquals(docs1.length, stats.missing_revisions_found,
-      "right # of missing_revisions_found");
+    skip("PouchDB doesn't support some of the detailed replication info", function () {
+      TEquals(docs1.length, stats.revisions_checked,
+         "right # of revisions_checked");
+      TEquals(docs1.length, stats.missing_revisions_found,
+        "right # of missing_revisions_found");
+    });
     TEquals(docs1.length, stats.docs_read, "right # of docs_read");
     TEquals(docs1.length, stats.docs_written, "right # of docs_written");
     TEquals(0, stats.doc_write_failures, "right # of doc_write_failures");
-    TEquals(dbA.info().update_seq, stats.checkpointed_source_seq,
-      "right checkpointed_source_seq");
+    skip("PouchDB doesn't support some of the detailed replication info", function () {
+      TEquals(dbA.info().update_seq, stats.checkpointed_source_seq,
+        "right checkpointed_source_seq");
+    });
   }
 
   var server_config = [
