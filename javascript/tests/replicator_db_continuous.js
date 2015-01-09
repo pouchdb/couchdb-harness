@@ -47,9 +47,11 @@ couchTests.replicator_db_continuous = function(debug) {
       T(copy.value === doc.value);
     }
 
-    var tasks = JSON.parse(CouchDB.request("GET", "/_active_tasks").responseText);
-    TEquals(1, tasks.length, "1 active task");
-    TEquals(repDoc._id, tasks[0].doc_id, "replication doc id in active tasks");
+    skip("PouchDB Server doesn't support /_active_tasks", function () {
+      var tasks = JSON.parse(CouchDB.request("GET", "/_active_tasks").responseText);
+      TEquals(1, tasks.length, "1 active task");
+      TEquals(repDoc._id, tasks[0].doc_id, "replication doc id in active tasks");
+    });
 
     // add another doc to source, it will be replicated to target
     var docX = {
