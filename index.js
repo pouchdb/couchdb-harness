@@ -23,7 +23,6 @@ var blacklist = [
     'javascript/tests/attachments_multipart.js',
     'javascript/tests/auth_cache.js',
     'javascript/tests/batch_save.js',
-    'javascript/tests/bulk_docs.js',
     'javascript/tests/coffee.js',
     'javascript/tests/compact.js',
     'javascript/tests/config.js',
