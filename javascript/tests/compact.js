@@ -31,26 +31,37 @@ couchTests.compact = function(debug) {
   T(db.save(binAttDoc).ok);
 
   var originalsize = db.info().disk_size;
-  var originaldatasize = db.info().data_size;
+  skip("db.info().data_size isn't supported in PouchDB-Server", function () {
+    var originaldatasize = db.info().data_size;
+  });
   var start_time = db.info().instance_start_time;
 
-  TEquals("number", typeof originaldatasize, "data_size is a number");
-  T(originaldatasize < originalsize, "data size is < then db file size");
+  skip("db.info().data_size isn't supported in PouchDB-Server", function () {
+    TEquals("number", typeof originaldatasize, "data_size is a number");
+    T(originaldatasize < originalsize, "data size is < then db file size");
+  });
 
   for(var i in docs) {
       db.deleteDoc(docs[i]);
   }
   T(db.ensureFullCommit().ok);
   var deletesize = db.info().disk_size;
-  T(deletesize > originalsize);
-  T(db.setDbProperty("_revs_limit", 666).ok);
+  skip("No db size guarantees for PouchDB server", function () {
+    T(deletesize > originalsize);
+  });
+  skip("PouchDB doesn't support _revs_limit", function () {
+    T(db.setDbProperty("_revs_limit", 666).ok);
+  });
 
   T(db.compact().ok);
   T(db.last_req.status == 202);
   // compaction isn't instantaneous, loop until done
   while (db.info().compact_running) {};
+  warn("PouchDB Server doesn't implement db.info().compact_running!");
   T(db.info().instance_start_time == start_time);
-  T(db.getDbProperty("_revs_limit") === 666);
+  skip("PouchDB doesn't support _revs_limit", function () {
+    T(db.getDbProperty("_revs_limit") === 666);
+  });
 
   T(db.ensureFullCommit().ok);
   restartServer();
@@ -58,8 +69,12 @@ couchTests.compact = function(debug) {
   T(xhr.responseText == "This is a base64 encoded text");
   T(xhr.getResponseHeader("Content-Type") == "text/plain");
   T(db.info().doc_count == 1);
-  T(db.info().disk_size < deletesize);
-  TEquals("number", typeof db.info().data_size, "data_size is a number");
-  T(db.info().data_size < db.info().disk_size, "data size is < then db file size");
+  skip("No db size guarantees for PouchDB server", function () {
+    T(db.info().disk_size < deletesize);
+  });
+  skip("db.info().data_size isn't supported in PouchDB-Server", function () {
+    TEquals("number", typeof db.info().data_size, "data_size is a number");
+    T(db.info().data_size < db.info().disk_size, "data size is < then db file size");
+  });
 
 };
