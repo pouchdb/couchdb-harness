@@ -53,7 +53,6 @@ var blacklist = [
     'javascript/tests/replicator_db_successive.js',
     'javascript/tests/replicator_db_user_ctx.js',
     'javascript/tests/rev_stemming.js',
-    'javascript/tests/rewrite.js',
     'javascript/tests/security_validation.js',
     'javascript/tests/show_documents.js',
     'javascript/tests/stats.js',

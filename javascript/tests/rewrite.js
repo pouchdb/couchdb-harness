@@ -411,7 +411,9 @@ couchTests.rewrite = function(debug) {
         T(xhr.status == 200, "path normalization works with qs params");
         var result = JSON.parse(xhr.responseText);
         T(result['_id'] == "_design/test");
-        T(typeof(result['_revs_info']) === "object");
+        skip("PouchDB.prototype.get() doesn't support the meta option", function () {
+          T(typeof(result['_revs_info']) === "object");
+        });
 
         // test path relative to server
         designDoc.rewrites.push({
@@ -421,9 +423,11 @@ couchTests.rewrite = function(debug) {
         T(db.save(designDoc).ok);
         
         var xhr = CouchDB.request("GET", "/"+dbName+"/_design/test/_rewrite/uuids");
-        T(xhr.status == 500);
-        var result = JSON.parse(xhr.responseText);
-        T(result.error == "insecure_rewrite_rule");
+        skip("PouchDB server doesn't support secure rewriting", function () {
+          T(xhr.status == 500);
+          var result = JSON.parse(xhr.responseText);
+          T(result.error == "insecure_rewrite_rule");
+        });
 
         run_on_modified_server(
           [{section: "httpd",
