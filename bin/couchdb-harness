@@ -3,17 +3,20 @@
 "use strict";
 
 var args    = require('optimist').argv,
+    addr    = args.a || null,
     port    = args.p || null,
+    bail    = args.b || null,
     tests   = args._ || null,
     colors  = require('colors/safe'),
     harness = require('..');
 
-harness.run(port, tests, function (exitCode) {
-  console.log("");
+harness.run(addr || port, {tests: tests, bail: bail}, function (exitCode) {
+  var msg = '\nFinal result: ';
   if (exitCode) {
-    console.log(colors.red("FAIL!"));
+    msg = colors.red(msg + "FAIL!");
   } else {
-    console.log(colors.green("SUCCES!"));
+    msg = colors.green(msg + "PASS!");
   }
+  console.log(msg);
   process.exit(exitCode);
 });

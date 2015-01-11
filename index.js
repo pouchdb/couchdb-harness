@@ -66,74 +66,94 @@ var blacklist = [
 
 module.exports = {
 
-  run: function (port, tests, callback) {
-    
+  run: function (addr, opts, callback) {
+    // parse args
+    if (typeof addr === 'function') {
+      callback = addr;
+      addr = null;
+    } else if (typeof addr === 'object' && addr !== null) {
+      opts = addr;
+      addr = null;
+    } else if (typeof addr === 'number') {
+      addr = 'http://127.0.0.1:' + addr + '/';
+    }
     // The couchjs binary file will fail if the server.uri file doesn't
     // have a linebreak at the end.
-    var addr = 'http://127.0.0.1:' + (port || 5984) + '/\n';
+    addr = (addr || 'http://127.0.0.1:5984/') + '\n';
 
-    if (tests && tests.length) {
-      tests = tests.map(function (test) { 
+    if (typeof opts === 'function') {
+      callback = opts;
+      opts = null;
+    }
+    opts = opts || {};
+    if (Array.isArray(opts)) {
+      opts = {tests: opts};
+    }
+    if (opts.tests && opts.tests.length) {
+      opts.tests = opts.tests.map(function (test) {
         return 'javascript/tests/' + test + '.js';
       });
     } else {
-      tests = glob.sync('javascript/tests/*.js', { cwd: cwd });
+      opts.tests = glob.sync('javascript/tests/*.js', {cwd: cwd});
     }
+    callback = callback || function () {};
 
-    tests = tests.filter(function(test) {
+    // filter tests by black list
+    var skipping = opts.tests.filter(function (test) {
+      return blacklist.indexOf(test) !== -1;
+    });
+    opts.tests = opts.tests.filter(function(test) {
       return blacklist.indexOf(test) === -1;
     });
-
-    console.log(colors.cyan('skipping:\n') + blacklist.join('\n') + '\n');
-
-    function runTests(tests, cb, code) {
-      if (code) {
-        return cb(code);
-      }
-      if (!tests.length) {
-        return cb(null, 0);
-      }
-      var test = tests.shift();
-      console.log(colors.green("\nStarting " + test));
-      var files = [
-        'couchdb-harness-extra.js',
-        'javascript/json2.js',
-        'javascript/sha1.js',
-        'javascript/oauth.js',
-        'javascript/couch.js',
-        'javascript/replicator_db_inc.js',
-        'javascript/couch_test_runner.js',
-        'javascript/couch_http.js',
-        'javascript/test_setup.js',
-        test,
-        'javascript/cli_runner.js'
-      ].map(function (fp) {
-        return path.resolve(cwd, fp);
-      });
-      var cmd = spawn(couchjs, ['-H', '-u', uri].concat(files));
-
-      cmd.stdout.on('data', function (data) {
-        process.stdout.write(colors.grey(data));
-      });
-
-      cmd.stderr.on('data', function (data) {
-        process.stdout.write(data);
-      });
-
-      cmd.on('exit', function (code) {
-        runTests(tests, cb, code);
-      });
+    if (skipping.length) {
+      console.log(colors.cyan('skipping:\n') + skipping.join('\n'));
     }
-
-    fs.writeFile(uri, addr, { encoding: 'utf8' }, function (err) {
-      if (err) {
-        throw err;
-      }
-
-      runTests(tests, callback);
+    fs.writeFile(uri, addr, {encoding: 'utf8'}, function (err) {
+      runTests(opts, callback);
     });
-
   }
-
 };
 
+function runTests(opts, cb, code) {
+  if (!opts.tests.length || (opts.bail && code)) {
+    return cb(code);
+  }
+  var test = opts.tests.shift();
+  runTest(test, function (newCode) {
+    runTests(opts, cb, code || newCode);
+  });
+}
+
+function runTest(test, cb) {
+  console.log('\n' + test + ': ' + colors.cyan('starting'));
+  var files = [
+    'couchdb-harness-extra.js',
+    'javascript/json2.js',
+    'javascript/sha1.js',
+    'javascript/oauth.js',
+    'javascript/couch.js',
+    'javascript/replicator_db_inc.js',
+    'javascript/couch_test_runner.js',
+    'javascript/couch_http.js',
+    'javascript/test_setup.js',
+    test,
+    'javascript/cli_runner.js'
+  ].map(function (fp) {
+    return path.resolve(cwd, fp);
+  });
+  var cmd = spawn(couchjs, ['-H', '-u', uri].concat(files));
+
+  cmd.stdout.on('data', function (data) {
+    process.stdout.write(colors.grey(data));
+  });
+
+  cmd.stderr.on('data', function (data) {
+    process.stdout.write(data);
+  });
+
+  cmd.on('exit', function (code) {
+    var message = code ? colors.red('fail') : colors.green('pass');
+    console.log(test + ': ' + message);
+    return cb(code);
+  });
+}
