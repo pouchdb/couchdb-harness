@@ -1,0 +1,29 @@
+language: node_js
+
+
+node_js:
+  - "0.10"
+
+git:
+  depth: 30
+
+before_script:
+  - "cd node_modules/pouchdb-server && npm install && cd -"
+  - "rm -fr node_modules/pouchdb-server/node_modules/couchdb-harness"
+  - "ln -s ../../.. node_modules/pouchdb-server/node_modules/couchdb-harness"
+
+script: "npm run $COMMAND"
+
+env:
+  matrix:
+  - COMMAND=jshint
+  - COMMAND=test-pouchdb-server
+ 
+matrix:
+  allow_failures:
+  - env: COMMAND=test-pouchdb-server
+
+branches:
+  only:
+  - master
+  - /^pull*$/
