@@ -10,7 +10,8 @@
   "scripts": {
     "start": "./bin/couchdb-harness",
     "jshint": "./node_modules/.bin/jshint bin/couchdb-harness index.js",
-    "test": "npm run jshint"
+    "test-pouchdb-server": "cd node_modules/pouchdb-server && npm run test-couchdb",
+    "test": "npm run jshint && npm run test-pouchdb-server"
   },
   "bin": "./bin/couchdb-harness",
   "engines": {
@@ -33,6 +34,7 @@
     "which": "^1.0.8"
   },
   "devDependencies": {
-    "jshint": "^2.5.11"
+    "jshint": "^2.5.11",
+    "pouchdb-server": "^0.6.4"
   }
 }
