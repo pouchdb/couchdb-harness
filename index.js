@@ -26,7 +26,6 @@ var blacklist = [
     'javascript/tests/bulk_docs.js',
     'javascript/tests/coffee.js',
     'javascript/tests/compact.js',
-    'javascript/tests/config.js',
     'javascript/tests/conflicts.js',
     'javascript/tests/cookie_auth.js',
     'javascript/tests/delayed_commits.js',

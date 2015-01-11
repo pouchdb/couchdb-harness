@@ -51,10 +51,12 @@ couchTests.config = function(debug) {
   }
 
   T(config.couchdb.database_dir);
-  T(config.daemons.httpd);
-  T(config.httpd_global_handlers._config);
-  // T(config.log.level);
-  T(config.query_servers.javascript);
+  skip("PouchDB server doesn't support config.daemons, config.httpd_global_handlers, config.query_servers", function () {
+    T(config.daemons.httpd);
+    T(config.httpd_global_handlers._config);
+    // T(config.log.level);
+    T(config.query_servers.javascript);
+  });
 
   // test that settings can be altered, and that an undefined whitelist allows any change
   TEquals(undefined, config.httpd.config_whitelist, "Default whitelist is empty");
@@ -89,30 +91,32 @@ couchTests.config = function(debug) {
   T(password_hashed.match(/^-pbkdf2-/) || password_hashed.match(/^-hashed-/),
     "Admin password is hashed");
 
-  xhr = CouchDB.request("PUT", "/_config/admins/administrator?raw=nothanks",{
-    body : JSON.stringify(password_hashed),
-    headers: {"X-Couch-Persist": "false"}
+  skip("PouchDB server doesn't support the raw config option", function () {
+    xhr = CouchDB.request("PUT", "/_config/admins/administrator?raw=nothanks",{
+      body : JSON.stringify(password_hashed),
+      headers: {"X-Couch-Persist": "false"}
+    });
+    TEquals(400, xhr.status, "CouchDB rejects an invalid 'raw' option");
+
+    xhr = CouchDB.request("PUT", "/_config/admins/administrator?raw=true",{
+      body : JSON.stringify(password_hashed),
+      headers: {"X-Couch-Persist": "false"}
+    });
+    TEquals(200, xhr.status, "Set an raw, pre-hashed admin password");
+
+    xhr = CouchDB.request("PUT", "/_config/admins/administrator?raw=false",{
+      body : JSON.stringify(password_hashed),
+      headers: {"X-Couch-Persist": "false"}
+    });
+    TEquals(200, xhr.status, "Set an admin password with raw=false");
+
+    // The password is literally the string "-pbkdf2-abcd...".
+    T(CouchDB.login("administrator", password_hashed).ok);
+
+    xhr = CouchDB.request("GET", "/_config/admins/administrator");
+    T(password_hashed != JSON.parse(xhr.responseText),
+      "Hashed password was not stored as a raw string");
   });
-  TEquals(400, xhr.status, "CouchDB rejects an invalid 'raw' option");
-
-  xhr = CouchDB.request("PUT", "/_config/admins/administrator?raw=true",{
-    body : JSON.stringify(password_hashed),
-    headers: {"X-Couch-Persist": "false"}
-  });
-  TEquals(200, xhr.status, "Set an raw, pre-hashed admin password");
-
-  xhr = CouchDB.request("PUT", "/_config/admins/administrator?raw=false",{
-    body : JSON.stringify(password_hashed),
-    headers: {"X-Couch-Persist": "false"}
-  });
-  TEquals(200, xhr.status, "Set an admin password with raw=false");
-
-  // The password is literally the string "-pbkdf2-abcd...".
-  T(CouchDB.login("administrator", password_hashed).ok);
-
-  xhr = CouchDB.request("GET", "/_config/admins/administrator");
-  T(password_hashed != JSON.parse(xhr.responseText),
-    "Hashed password was not stored as a raw string");
 
   xhr = CouchDB.request("DELETE", "/_config/admins/administrator",{
     headers: {"X-Couch-Persist": "false"}
