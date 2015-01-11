@@ -23,7 +23,6 @@ var blacklist = [
     'javascript/tests/batch_save.js',
     'javascript/tests/bulk_docs.js',
     'javascript/tests/coffee.js',
-    'javascript/tests/compact.js',
     'javascript/tests/config.js',
     'javascript/tests/conflicts.js',
     'javascript/tests/cookie_auth.js',
@@ -121,7 +120,7 @@ module.exports = {
       var test = tests.shift();
       console.log(colors.green("\nStarting " + test));
       var files = [
-        'couchdb-harness-skip.js',
+        'couchdb-harness-extra.js',
         'javascript/json2.js',
         'javascript/sha1.js',
         'javascript/oauth.js',
