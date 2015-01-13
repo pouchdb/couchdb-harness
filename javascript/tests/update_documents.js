@@ -73,15 +73,15 @@ couchTests.update_documents = function(debug) {
          if (!doc.counter) doc.counter = 0;
          doc.counter += 1;
          var message = "<h1>bumped it!</h1>";
-         resp = {"code": 302, "body": message}
+         var resp = {"code": 302, "body": message}
          return [doc, resp];
        }),
        "resp-code" : stringFun(function(doc,req) {
-         resp = {"code": 302}
+         var resp = {"code": 302}
          return [null, resp];
        }),
        "resp-code-and-json" : stringFun(function(doc,req) {
-         resp = {"code": 302, "json": {"ok": true}}
+         var resp = {"code": 302, "json": {"ok": true}}
          return [{"_id": req["uuid"]}, resp];
        }),
        "binary" : stringFun(function(doc, req) {
@@ -108,7 +108,9 @@ couchTests.update_documents = function(debug) {
   // update error
   var xhr = CouchDB.request("POST", "/test_suite_db/_design/update/_update/");
   T(xhr.status == 404, 'Should be missing');
-  T(JSON.parse(xhr.responseText).reason == "Invalid path.");
+  skip("Different error message in pouchdb server", function () {
+    T(JSON.parse(xhr.responseText).reason == "Invalid path.");
+  });
   
   // hello update world
   xhr = CouchDB.request("PUT", "/test_suite_db/_design/update/_update/hello/"+docid);
@@ -120,8 +122,10 @@ couchTests.update_documents = function(debug) {
   doc = db.open(docid);
   T(doc.world == "hello");
 
-  // Fix for COUCHDB-379
-  T(equals(xhr.getResponseHeader("Server").substr(0,7), "CouchDB"));
+  skip("PouchDB-Server doesn't set the Server header (and even if it did, not to 'CouchDB ...')", function () {
+    // Fix for COUCHDB-379
+    T(equals(xhr.getResponseHeader("Server").substr(0,7), "CouchDB"));
+  });
 
   // hello update world (no docid)
   xhr = CouchDB.request("POST", "/test_suite_db/_design/update/_update/hello");
@@ -184,7 +188,9 @@ couchTests.update_documents = function(debug) {
   // Server provides UUID when POSTing without an ID in the URL
   xhr = CouchDB.request("POST", "/test_suite_db/_design/update/_update/get-uuid/");
   T(xhr.status == 200);
-  T(xhr.responseText.length == 32);
+  skip("CouchDB uuid length !== PouchDB server uuid length", function () {
+    T(xhr.responseText.length == 32);
+  });
 
   // COUCHDB-1229 - allow slashes in doc ids for update handlers
   // /db/_design/doc/_update/handler/doc/id
@@ -203,6 +209,7 @@ couchTests.update_documents = function(debug) {
 
   // COUCHDB-648 - the code in the JSON response should be honored
 
+  warn("Difference from original CouchDB code in code-n-bump, resp-code & resp-code-and-json: 'var resp =' instead of 'resp ='");
   xhr = CouchDB.request("PUT", "/test_suite_db/_design/update/_update/code-n-bump/"+docid, {
     headers : {"X-Couch-Full-Commit":"true"}
   });
@@ -229,7 +236,9 @@ couchTests.update_documents = function(debug) {
 
   // Insert doc with empty id
   xhr = CouchDB.request("PUT", "/test_suite_db/_design/update/_update/empty/foo");
-  TEquals(400, xhr.status);
-  TEquals("Document id must not be empty", JSON.parse(xhr.responseText).reason);
+  skip("PouchDB-Server gives a 412 & a similar (but not the same) error message. Not sure if worth replacing.", function () {
+    TEquals(400, xhr.status);
+    TEquals("Document id must not be empty", JSON.parse(xhr.responseText).reason);
+  });
 
 };
