@@ -46,14 +46,18 @@ couchTests.users_db = function(debug) {
     T(s.userCtx.name == "jchris@apache.org");
     T(s.info.authenticated == "default");
     T(s.info.authentication_db == "test_suite_users");
-    TEquals(["oauth", "cookie", "default"], s.info.authentication_handlers);
-    var s = CouchDB.session({
-      headers : {
-        "Authorization" : "Basic Xzpf" // name and pass of _:_
-      }
+    skip("oauth not supported in PouchDB server", function () {
+      TEquals(["oauth", "cookie", "default"], s.info.authentication_handlers);
     });
-    T(s.name == null);
-    T(s.info.authenticated == "default");
+    skip("PouchDB-Server doesn't have a special case for _:_. Should it?", function () {
+      var s = CouchDB.session({
+        headers : {
+          "Authorization" : "Basic Xzpf" // name and pass of _:_
+        }
+      });
+      T(s.name == null);
+      T(s.info.authenticated == "default");
+    });
     
     
     // ok, now create a conflicting edit on the jchris doc, and make sure there's no login.
@@ -67,29 +71,31 @@ couchTests.users_db = function(debug) {
       T(true);
     }
     // save as bulk with new_edits=false to force conflict save
-    var resp = usersDb.bulkSave([jchrisUserDoc],{all_or_nothing : true});
+    skip("all_or_nothing not supported by PouchDB-Server", function () {
+      var resp = usersDb.bulkSave([jchrisUserDoc],{all_or_nothing : true});
+      
+      var jchrisWithConflict = usersDb.open(jchrisUserDoc._id, {conflicts : true});
+      T(jchrisWithConflict._conflicts.length == 1);
     
-    var jchrisWithConflict = usersDb.open(jchrisUserDoc._id, {conflicts : true});
-    T(jchrisWithConflict._conflicts.length == 1);
-    
-    // no login with conflicted user doc
-    try {
-      var s = CouchDB.session({
-        headers : {
-          "Authorization" : "Basic amNocmlzQGFwYWNoZS5vcmc6ZnVubnlib25l"
-        }
-      });
-      T(false && "this will throw");
-    } catch(e) {
-      T(e.error == "unauthorized");
-      T(/conflict/.test(e.reason));
-    }
+      // no login with conflicted user doc
+      try {
+        var s = CouchDB.session({
+          headers : {
+            "Authorization" : "Basic amNocmlzQGFwYWNoZS5vcmc6ZnVubnlib25l"
+          }
+        });
+        T(false && "this will throw");
+      } catch(e) {
+        T(e.error == "unauthorized");
+        T(/conflict/.test(e.reason));
+      }
 
-    // you can delete a user doc
-    s = CouchDB.session().userCtx;
-    T(s.name == null);
-    T(s.roles.indexOf("_admin") !== -1);
-    T(usersDb.deleteDoc(jchrisWithConflict).ok);
+      // you can delete a user doc
+      s = CouchDB.session().userCtx;
+      T(s.name == null);
+      T(s.roles.indexOf("_admin") !== -1);
+      T(usersDb.deleteDoc(jchrisWithConflict).ok);
+    });
 
     // you can't change doc from type "user"
     jchrisUserDoc = usersDb.open(jchrisUserDoc._id);
