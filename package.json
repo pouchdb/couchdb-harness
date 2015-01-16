@@ -1,6 +1,6 @@
 {
   "name": "couchdb-harness",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "A generalized port of the CouchDB JavaScript test harness.",
   "repository": {
     "type": "git",
