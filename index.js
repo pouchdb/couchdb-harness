@@ -106,7 +106,8 @@ module.exports = {
       return blacklist.indexOf(test) === -1;
     });
     if (skipping.length) {
-      console.log(colors.cyan('skipping:\n') + skipping.join('\n'));
+      console.log(colors.cyan('skipping ' + skipping.length + '/' +
+        opts.tests.length + ' tests. skipped:\n') + skipping.join('\n'));
     }
     fs.writeFile(uri, addr, {encoding: 'utf8'}, function (err) {
       runTests(opts, callback);
