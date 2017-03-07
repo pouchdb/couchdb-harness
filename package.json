@@ -29,12 +29,12 @@
   "license": "Apache License",
   "dependencies": {
     "colors": "^1.0.3",
-    "glob": "~3.1.21",
-    "optimist": "~0.3.5",
+    "glob": "~7.1.1",
+    "optimist": "~0.6.1",
     "which": "^1.0.8"
   },
   "devDependencies": {
     "jshint": "^2.5.11",
-    "pouchdb-server": "^0.6.4"
+    "pouchdb-server": "^2.3.6"
   }
 }
