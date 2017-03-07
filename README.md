@@ -1,5 +1,7 @@
 # CouchDB Harness
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/pouchdb/couchdb-harness.svg)](https://greenkeeper.io/)
+
 >A generalized port of the CouchDB JavaScript test harness.
 
 ## Install
